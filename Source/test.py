@@ -99,7 +99,7 @@ def test_createDynamoTable():
 def test_deleteDynamoTable():
   DB = boto3.resource("dynamodb")
   testTable = DB.Table("tableToCreateThenDelete")
-  testTable = deleteTable(testTable)
+  deleteTable(testTable)
   assert testTable.table_status == "DELETING"
   time.sleep(3)
 
