@@ -101,7 +101,7 @@ def test_deleteDynamoTable():
   testTable = DB.Table("tableToCreateThenDelete")
   testTable = deleteTable(testTable)
   assert testTable.table_status == "DELETING"
-  sleep(3)
+  time.sleep(3)
 
 # Test insertRow() function for DynamoDB using insertRow() function from temperatureHumidity.py
 def test_insertDynamoRow():
