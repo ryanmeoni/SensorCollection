@@ -14,4 +14,4 @@ install:
     -pip install fake_rpi
 
 script:
-    -python3 test.py
+    -pytest Source/test.py
