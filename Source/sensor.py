@@ -11,56 +11,8 @@ from decimal import Decimal
 from datetime import date, datetime
 import functionalizedAWSIOT
 import subscriptionFunctions
+from functionalizedDynamoDB import insertRow, deleteTable, createTable
 
-def insertRow(table, columns, primaryColumnName, entryNumber, attributeOne, attributeTwo):
-    # test that we can insert a new row into table with a given primary key (entryNumber)
-
-    response = table.put_item(
-        Item={
-            primaryColumnName: entryNumber,
-            columns[0]: attributeOne,
-            columns[1]: attributeTwo
-        }
-    )
-
-
-def printAllRows(table, primaryColumnName):
-    # print all table entries to test we inserted rows correctly
-    # get all rows with a primary key (entryNumber) greater than or equal to 0 (so all of them)
-
-    response = table.scan(
-        FilterExpression=Attr(primaryColumnName).gte(0)
-    )
-
-    for row in response["Items"]:
-        print(row)
-
-def createTable(DB, tableName, primaryColumnName):
-
-    table = DB.create_table(
-        TableName=tableName,
-        KeySchema=[
-            {
-                'AttributeName': primaryColumnName,
-                'KeyType': 'HASH'  # Partition key
-            }
-        ],
-        AttributeDefinitions=[
-            {
-                'AttributeName': primaryColumnName,
-                'AttributeType': 'N'
-            }
-        ],
-        ProvisionedThroughput={
-            'ReadCapacityUnits': 10,
-            'WriteCapacityUnits': 10
-        }
-    )
-    return table
-
-def deleteTable(table):
-    table.delete()
-    return table
 
 # Publication function for tripwire
 entryNumber_trigger = 0
@@ -85,6 +37,7 @@ def tripwireTriggered(ev=None):
 
     # Increment tripwire table's entry number
     entryNumber_trigger = entryNumber_trigger + 1
+
 
 # Main function
 if __name__ == "__main__":
@@ -159,7 +112,7 @@ if __name__ == "__main__":
                 now = datetime.utcnow()
                 now_str = now.strftime('%Y-%m-%d %H:%M:%S')
                 payload = '{ "timestamp": "' + now_str + '","temperature": ' + str(temperature) + ',"humidity": '+ str(humidity) + ' }'
-                myMQTTClient.publish("RyanPi/ryan-Pi/controlFan", payload, 0)
+                myMQTTClient.publish("data", payload, 0)
             else:
                 print("Failed to retrieve data from humidity sensor")
 

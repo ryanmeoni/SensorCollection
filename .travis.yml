@@ -1,0 +1,17 @@
+language: python
+
+python: 
+    -"3.6"
+    -"3.7"
+    -"3.8"
+
+# services:
+#    -docker
+
+before_script:
+    -pip install AWSIoTPythonSDK
+    -pip install boto3
+    -pip install fake_rpi
+
+script:
+    -python3 test.py

@@ -10,11 +10,14 @@ import sys
 # Function that subscribes to topics in defines.py on MQTT client creation
 def AWS_MQTT_auto_subscribe(MQTTClient):
   print("Subscribing to topics")
-  for t in defines.TOPICS:
-    callbackFunction = subscriptionFunctions.returnCallbackFunction(t)
-    print(f"Current topic being subscribed to is: {t}")
-    if MQTTClient.subscribe(topicPath + t, 1, callbackFunction):
-      print(f"{t} Subscription successful")
+  for topic in defines.TOPICS:
+    topicPath = topic[0]
+    callbackFunctionName = topic[1]
+    print(f"Looking for function {callbackFunctionName}")
+    callbackFunction = subscriptionFunctions.generateCallbackFunction(callbackFunctionName)
+    print(f"Current topic being subscribed to is: {topicPath}")
+    if MQTTClient.subscribe(topicPath, 1, callbackFunction):
+      print(f"{topicPath} Subscription successful")
 
 
 # Function to explicity subscribe to topics
