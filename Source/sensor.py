@@ -76,12 +76,12 @@ def tripwireTriggered(ev=None):
     now_str_date = now.strftime('%Y-%m-%d')
     now_str_time = now.strftime('%H:%M:%S')
 
-    #    DB = boto3.resource("dynamodb")
+    DB = boto3.resource("dynamodb")
     tableName_trigger = "tripwireTracking"
     primaryColumnName_trigger = "entryNumber"
     columns_trigger = ["date", "time"]
-    #    triggerTable = DB.Table(tableName_trigger)
-    #    insertRow(triggerTable, columns_trigger, primaryColumnName_trigger, entryNumber_trigger, now_str_date, now_str_time)
+    triggerTable = DB.Table(tableName_trigger)
+    insertRow(triggerTable, columns_trigger, primaryColumnName_trigger, entryNumber_trigger, now_str_date, now_str_time)
 
     # Increment tripwire table's entry number
     entryNumber_trigger = entryNumber_trigger + 1
@@ -119,21 +119,21 @@ if __name__ == "__main__":
     columns_trigger = ["date", "time"]
 
     # resource
-    #      DB = boto3.resource("dynamodb")
-    #      oldTable_tempHum = DB.Table(tableName_tempHum)
-    #      oldTable_trigger = DB.Table(tableName_trigger)
+    DB = boto3.resource("dynamodb")
+    oldTable_tempHum = DB.Table(tableName_tempHum)
+    oldTable_trigger = DB.Table(tableName_trigger)
 
     # Delete existing table
-    #      oldTableTempHum = deleteTable(oldTable_tempHum)
-    #      oldTableTrigger = deleteTable(oldTable_trigger)
+    oldTableTempHum = deleteTable(oldTable_tempHum)
+    oldTableTrigger = deleteTable(oldTable_trigger)
 
     # 3 second sleep to give tables time to be deleted on AWS
     sleep(5)
     print("OLD TABLES DELETED")
 
     # Create new tables
-    #      newTableTempHum = createTable(DB, tableName_tempHum, primaryColumnName_tempHum)
-    #      newTableTrigger = createTable(DB, tableName_trigger, primaryColumnName_trigger)
+    newTableTempHum = createTable(DB, tableName_tempHum, primaryColumnName_tempHum)
+    newTableTrigger = createTable(DB, tableName_trigger, primaryColumnName_trigger)
 
     #5 second sleep to give tables time to be created on AWS
     sleep(7)
@@ -155,7 +155,7 @@ if __name__ == "__main__":
                 humidity = round(humidity, 2)
                 print(f"Temperature: {temperature}, Humidity: {humidity}")
                 print("####")
-                #    insertRow(newTableTempHum, columns_tempHum, primaryColumnName_tempHum, entryNumber_tempHum, temperature, humidity)
+                insertRow(newTableTempHum, columns_tempHum, primaryColumnName_tempHum, entryNumber_tempHum, temperature, humidity)
                 now = datetime.utcnow()
                 now_str = now.strftime('%Y-%m-%d %H:%M:%S')
                 payload = '{ "timestamp": "' + now_str + '","temperature": ' + str(temperature) + ',"humidity": '+ str(humidity) + ' }'
