@@ -1,17 +1,11 @@
 language: python
-
-python: 
-    -"3.6"
-    -"3.7"
-    -"3.8"
-
-# services:
-#    -docker
-
+python:
+    - "3.6"      # current default Python on Travis CI
+    - "3.7"
+    - "3.8"
 install:
-    -pip install AWSIoTPythonSDK
-    -pip install boto3
-    -pip install fake_rpi
-
+  - pip install AWSIoTPythonSDK
+  - pip install boto3
+  - pip install fake_rpi
 script:
-    -pytest Source/test.py
+  - pytest Source/test.py
