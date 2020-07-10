@@ -98,6 +98,6 @@ subscribedTopicDictionary = {
 
 # https://stackoverflow.com/questions/9168340/using-a-dictionary-to-select-function-to-execute
 # Maybe check if k is valid input
-def generateCallbackFunction(k):
-    return subscribedTopicDictionary[k]
+def generateCallbackFunction(topic):
+    return subscribedTopicDictionary[topic]
 
