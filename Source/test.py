@@ -93,7 +93,6 @@ def test_createDynamoTable():
   DB = boto3.resource("dynamodb")
   testTable = createTable(DB, tableName, primaryColumnName)
   assert testTable.table_status == "CREATING"
-  # Sleep for 5 seconds to allow time for table to be created
   time.sleep(7)
 
 # Test deleteTable() function for DynamoDB using deleteTable() function from temperatureHumidity.py
@@ -102,6 +101,7 @@ def test_deleteDynamoTable():
   testTable = DB.Table("tableToCreateThenDelete")
   testTable = deleteTable(testTable)
   assert testTable.table_status == "DELETING"
+  sleep(3)
 
 # Test insertRow() function for DynamoDB using insertRow() function from temperatureHumidity.py
 def test_insertDynamoRow():
