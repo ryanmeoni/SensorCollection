@@ -15,9 +15,9 @@ from functionalizedDynamoDB import insertRow, deleteTable, createTable
 
 
 # Publication function for tripwire
-entryNumber_trigger = 0
+entryNumber_tripwireTracking = 1
 def tripwireTriggered(ev=None):
-    global entryNumber_trigger
+    global entryNumber_tripwireTracking
     test = "does not matter"
     payload = test
     print("Tripwire triggered.")
@@ -29,14 +29,14 @@ def tripwireTriggered(ev=None):
     now_str_time = now.strftime('%H:%M:%S')
 
     DB = boto3.resource("dynamodb")
-    tableName_trigger = "tripwireTracking"
-    primaryColumnName_trigger = "entryNumber"
-    columns_trigger = ["date", "time"]
-    triggerTable = DB.Table(tableName_trigger)
-    insertRow(triggerTable, columns_trigger, primaryColumnName_trigger, entryNumber_trigger, now_str_date, now_str_time)
+    tableName_tripwire = "tripwireTracking"
+    primaryColumnName_tripwire = "entryNumber"
+    columns_tripwire = ["date", "time"]
+    tripwireTrackingTable = DB.Table(tableName_tripwire)
+    insertRow(tripwireTrackingTable, columns_tripwire, primaryColumnName_tripwire, entryNumber_tripwireTracking, now_str_date, now_str_time)
 
     # Increment tripwire table's entry number
-    entryNumber_trigger = entryNumber_trigger + 1
+    entryNumber_tripwireTracking = entryNumber_tripwireTracking + 1
 
 
 # Main execution start
@@ -61,39 +61,71 @@ if __name__ == "__main__":
 
     # entryNumber is primary key for both tables
     # Temperature/Humidity data table setup fields
-    tableName_tempHum = "tempHumidityData"
-    primaryColumnName_tempHum = "entryNumber"
-    columns_tempHum = ["temperature", "humidity"]
+    tableName_TempHum = "tempHumidityData"
+    primaryColumnName_TempHum = "entryNumber"
+    columns_TempHum = ["temperature", "humidity"]
 
     # Trigger timestamp table setup fields
-    tableName_trigger = "tripwireTracking"
-    primaryColumnName_trigger = "entryNumber"
-    columns_trigger = ["date", "time"]
+    tableName_Tripwire = "tripwireTracking"
+    primaryColumnName_Tripwire = "entryNumber"
+    columns_Tripwire = ["date", "time"]
 
-    # resource
+    # resource and client
     DB = boto3.resource("dynamodb")
-    oldTable_tempHum = DB.Table(tableName_tempHum)
-    oldTable_trigger = DB.Table(tableName_trigger)
+    DB_client = boto3.client("dynamodb")
 
-    # Delete existing table
-    oldTableTempHum = deleteTable(oldTable_tempHum)
-    oldTableTrigger = deleteTable(oldTable_trigger)
+    # Create temperature and humidity table
+    try:
+        print("Attempting to create tempHumidityData table...")
+        newTable_TempHum = createTable(DB, tableName_TempHum, primaryColumnName_TempHum)
+        waiter = DB_client.get_waiter("table_exists")
+        waiter.wait(TableName=tableName_TempHum)
 
-    # 3 second sleep to give tables time to be deleted on AWS
-    sleep(5)
-    print("OLD TABLES DELETED")
+    # Exception if table already exists, delete and recreate
+    except DB_client.exceptions.ResourceInUseException as E:
+        oldTable_TempHum = DB.Table(tableName_TempHum)
+        deletedTable_TempHum = deleteTable(oldTable_TempHum)
+        waiter = DB_client.get_waiter("table_not_exists")
+        waiter.wait(TableName=tableName_TempHum)
 
-    # Create new tables
-    newTableTempHum = createTable(DB, tableName_tempHum, primaryColumnName_tempHum)
-    newTableTrigger = createTable(DB, tableName_trigger, primaryColumnName_trigger)
+        # Recreate the table now
+        print("tempHumidityData table exists, deleting and creating fresh table...")
+        newTable_TempHum = createTable(DB, tableName_TempHum, primaryColumnName_TempHum)
+        waiter = DB_client.get_waiter("table_exists")
+        waiter.wait(TableName=tableName_TempHum)
 
-    #5 second sleep to give tables time to be created on AWS
-    sleep(7)
-    print("NEW TABLES CREATED")
+    except Exception as E:
+        print(f"Unspecified exception occurred creating tempHumidityData table: " + str(E))
+        exit()
 
-    # test insert row with entryNumber of 1
-    entryNumber_tempHum = 1
+    # Create tripwire tracking table
+    try:
+        print("Attempting to create tripwireTracking table...")
+        newTable_Tripwire = createTable(DB, tableName_Tripwire, primaryColumnName_Tripwire)
+        waiter = DB_client.get_waiter("table_exists")
+        waiter.wait(TableName=tableName_Tripwire)
 
+    # Exception if table already exists, delete and recreate
+    except DB_client.exceptions.ResourceInUseException as E:
+        oldTable_Tripwire = DB.Table(tableName_Tripwire)
+        deletedTable_Tripwire = deleteTable(oldTable_Tripwire)
+        waiter = DB_client.get_waiter("table_not_exists")
+        waiter.wait(TableName=tableName_Tripwire)
+
+        # Recreate the table now
+        print("tripwireTracking table exists, deleting and creating fresh table...")
+        newTable_Tripwire = createTable(DB, tableName_Tripwire, primaryColumnName_Tripwire)
+        waiter = DB_client.get_waiter("table_exists")
+        waiter.wait(TableName=tableName_Tripwire)
+
+    except Exception as E:
+        print(f"Unspecified exception occurred creating tripwireTracking table: " + str(E))
+        exit()
+
+
+    print("tempHumidityData and tripWireTracking tables successfully created!")
+
+    entryNumber_TempHum = 1
     while True:
         try:
             temperature = None
@@ -107,7 +139,7 @@ if __name__ == "__main__":
                 humidity = round(humidity, 2)
                 print(f"Temperature: {temperature}, Humidity: {humidity}")
                 print("####")
-                insertRow(newTableTempHum, columns_tempHum, primaryColumnName_tempHum, entryNumber_tempHum, temperature, humidity)
+                insertRow(newTable_TempHum, columns_TempHum, primaryColumnName_TempHum, entryNumber_TempHum, temperature, humidity)
                 now = datetime.utcnow()
                 now_str = now.strftime('%Y-%m-%d %H:%M:%S')
                 payload = '{ "timestamp": "' + now_str + '","temperature": ' + str(temperature) + ',"humidity": '+ str(humidity) + ' }'
@@ -116,8 +148,8 @@ if __name__ == "__main__":
                 print("Failed to retrieve data from humidity sensor")
 
             # Increment temperature/humidity table's primary key value for next row entry
-            entryNumber_tempHum = entryNumber_tempHum + 1
-            # Sleep for 2 seconds, only grab values every 2 seconds
+            entryNumber_TempHum = entryNumber_TempHum + 1
+            # Sleep for 2 seconds, only read from temp/humidity sensor once every 2 seconds
             sleep(2)
 
         except KeyboardInterrupt:
@@ -126,5 +158,5 @@ if __name__ == "__main__":
             exit()
 
         except Exception as E:
-            print(f"Unspecified exception occurred. Exception is: " + E.message)
+            print(f"Unspecified exception occurred in main application loop. Exception is: " + str(E))
 
