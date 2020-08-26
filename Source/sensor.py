@@ -39,7 +39,7 @@ def tripwireTriggered(ev=None):
     entryNumber_trigger = entryNumber_trigger + 1
 
 
-# Main function
+# Main execution start
 if __name__ == "__main__":
 
     # Initialize MQTT client
@@ -60,7 +60,6 @@ if __name__ == "__main__":
     GPIO.add_event_detect(21, GPIO.FALLING, callback=tripwireTriggered, bouncetime=5000)
 
     # entryNumber is primary key for both tables
-
     # Temperature/Humidity data table setup fields
     tableName_tempHum = "tempHumidityData"
     primaryColumnName_tempHum = "entryNumber"
@@ -126,8 +125,6 @@ if __name__ == "__main__":
             GPIO.cleanup()
             exit()
 
-        except:
-            print("Error publishing")
-            #GPIO.cleanup()
-            #exit()
+        except Exception as E:
+            print(f"Unspecified exception occurred. Exception is: " + E.message)
 

@@ -72,8 +72,6 @@ def controlFan(client, userdata, message):
   if (client == "Testing" and userdata == "Testing"):
     GUI_control_fan = 0
 
-  print("SUP MAN")
-
   payloadDict = json.loads(message.payload)
   humidity = Decimal(payloadDict["humidity"])
 
