@@ -19,7 +19,7 @@ numpy==1.18.4
 packaging==20.4
 pkg-resources==0.0.0
 pluggy==0.13.1
-py==1.8.1
+py==1.10.0
 pyasn1==0.4.8
 pycodestyle==2.6.0
 pyparsing==2.4.7
