@@ -28,7 +28,7 @@ python-dateutil==2.8.1
 PyYAML==5.3.1
 rpi-rfm69==0.2.1b0
 RPi.GPIO==0.7.0
-rsa==3.4.2
+rsa==4.7
 s3transfer==0.3.3
 six==1.15.0
 spidev==3.4
